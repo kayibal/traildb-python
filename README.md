@@ -29,3 +29,24 @@ See [TrailDB tutorial](http://traildb.io/docs/tutorial) for more information.
 12345678123456781234567812345678 event(time=123L, field1='a', field2='')
 12345678123456781234567812345678 event(time=124L, field1='b', field2='c')
 ```
+
+## For Docker User:
+
+You can pull image from here:
+
+    $ docker pull c3h3/traildb-ipynb
+
+Or, you can build docker image by yourself (please replace "your/repo-name" with whatever you want):
+
+    $ docker build -t your/repo-name .
+
+
+You can run the docker image with default password (jupyter), and your jupyter notebook will listen on 8080 port:
+
+    $ docker run -p 8080:8888 -it c3h3/traildb-ipynb
+
+Or, you can run the docker image with your password (yourPassword), and your jupyter notebook will listen on 8080 port:
+
+    $ docker run -e PASSWORD=yourPassword -p 8080:8888 -it c3h3/traildb-ipynb
+
+Easily to use [http://localhost:8080](http://localhost:8080) to access your jupyter notebook
