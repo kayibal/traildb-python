@@ -1,3 +1,13 @@
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 import os
 import sys
 
@@ -10,6 +20,7 @@ from ctypes import CDLL, CFUNCTYPE, POINTER, pointer
 from ctypes import byref, cast, string_at, addressof
 from datetime import datetime
 import time
+import codecs
 
 if os.name == "posix" and sys.platform == "darwin":
     try:
@@ -90,11 +101,11 @@ api(lib.tdb_event_filter_free, [tdb_event_filter])
 def uuid_hex(uuid):
     if isinstance(uuid, basestring):
         return uuid
-    return string_at(uuid, 16).encode('hex')
+    return codecs.encode(string_at(uuid, 16), "hex")
 
 def uuid_raw(uuid):
     if isinstance(uuid, basestring):
-        return (c_ubyte * 16).from_buffer_copy(uuid.decode('hex'))
+        return (c_ubyte * 16).from_buffer_copy(codecs.decode(uuid, "hex"))
     return uuid
 
 def nullterm(strs, size):
@@ -106,7 +117,7 @@ def nullterm(strs, size):
 
 def tdb_item_is32(item): return not (item & 128)
 def tdb_item_field32(item): return item & 127
-def tdb_item_val32(item): return (item >> 8) & 4294967295L # UINT32_MAX
+def tdb_item_val32(item): return (item >> 8) & 4294967295 # UINT32_MAX
 
 def tdb_item_field(item):
     """Return field-part of an item."""
@@ -139,7 +150,10 @@ class TrailDBConstructor(object):
             raise TrailDBError("Path is required")
         n = len(ofields)
 
-        ofield_names = (c_char_p * n)(*[name for name in ofields])
+        if isinstance(path, str):
+            path = path.encode()
+
+        ofield_names = (c_char_p * n)(*[name.encode() for name in ofields])
 
         self._cons = lib.tdb_cons_init()
         if lib.tdb_cons_open(self._cons, path, ofield_names, n) != 0:
@@ -162,6 +176,7 @@ class TrailDBConstructor(object):
         if isinstance(tstamp, datetime):
             tstamp = int(time.mktime(tstamp.timetuple()))
         n = len(self.ofields)
+        values = [v.encode() if not isinstance(v, bytes) else v for v in values]
         value_array = (c_char_p * n)(*values)
         value_lengths = (c_uint64 * n)(*[len(v) for v in values])
         f = lib.tdb_cons_add(self._cons, uuid_raw(uuid), tstamp, value_array,
@@ -224,7 +239,7 @@ class TrailDBCursor(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         """Return the next event in the trail."""
         event = lib.tdb_cursor_next(self.cursor)
         if not event:
@@ -255,6 +270,9 @@ class TrailDB(object):
 
     def __init__(self, path):
         """Open a TrailDB at path."""
+        if isinstance(path, str):
+            path = path.encode()
+
         self._db = db = lib.tdb_init()
         res = lib.tdb_open(self._db, path)
         if res != 0:
@@ -263,7 +281,7 @@ class TrailDB(object):
         self.num_trails = lib.tdb_num_trails(db)
         self.num_events = lib.tdb_num_events(db)
         self.num_fields = lib.tdb_num_fields(db)
-        self.fields = [lib.tdb_get_field_name(db, i) for i in xrange(self.num_fields)]
+        self.fields = [lib.tdb_get_field_name(db, i).decode() for i in range(self.num_fields)]
         self._event_cls = namedtuple('event', self.fields, rename=True)
         self._uint64_ptr = pointer(c_uint64())
 
@@ -293,7 +311,7 @@ class TrailDB(object):
         """Iterate over all trails in this TrailDB.
 
         Keyword arguments are passed to trail()."""
-        for i in xrange(len(self)):
+        for i in range(len(self)):
             yield self.get_uuid(i), self.trail(i, **kwds)
 
     def trail(self,
@@ -338,7 +356,7 @@ class TrailDB(object):
     def lexicon(self, fieldish):
         """Return an iterator over values of the given field ID or field name."""
         field = self.field(fieldish)
-        return (self.get_value(field, i) for i in xrange(1, self.lexicon_size(field)))
+        return (self.get_value(field, i) for i in range(1, self.lexicon_size(field)))
 
     def lexicon_size(self, fieldish):
         """Return the number of distinct values in the given
@@ -353,7 +371,7 @@ class TrailDB(object):
         """Return the item corresponding to a field ID or
         a field name and a string value."""
         field = self.field(fieldish)
-        item = lib.tdb_get_item(self._db, field, value, len(value))
+        item = lib.tdb_get_item(self._db, field, value.encode(), len(value))
         if not item:
             raise TrailDBError("No such value: '%s'" % value)
         return item
@@ -363,7 +381,14 @@ class TrailDB(object):
         value = lib.tdb_get_item_value(self._db, item, self._uint64_ptr)
         if value is None:
             raise TrailDBError("Error reading value, error: %s" % lib.tdb_error(self._db))
-        return value[0:self._uint64_ptr.contents.value]
+
+        # this is for handle bynary data i.e. test/test.py TEST=test_binarydata
+        # if value can not be converted to unicode we handle it as binary
+        # TODO: find a better way to handle binary data.
+        try:
+            return value[0:self._uint64_ptr.contents.value].decode()
+        except UnicodeDecodeError:
+            return value[0:self._uint64_ptr.contents.value]
 
     def get_value(self, fieldish, val):
         """Return the string value corresponding to a field ID or
@@ -372,7 +397,7 @@ class TrailDB(object):
         value = lib.tdb_get_value(self._db, field, val, self._uint64_ptr)
         if value is None:
             raise TrailDBError("Error reading value, error: %s" % lib.tdb_error(self._db))
-        return value[0:self._uint64_ptr.contents.value]
+        return value[0:self._uint64_ptr.contents.value].decode()
 
     def get_uuid(self, trail_id, raw=False):
         """Return UUID given a Trail ID."""
@@ -431,7 +456,7 @@ class TrailDBEventFilter(object):
                     field, value = term
                 try:
                     item = db.get_item(field, value)
-                except TrailDBError, ValueError:
+                except TrailDBError:
                     item = 0
                 err = lib.tdb_event_filter_add_term(self.flt,
                                                     item,

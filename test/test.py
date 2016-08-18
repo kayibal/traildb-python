@@ -1,3 +1,12 @@
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from builtins import next
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
+
 import os
 import shutil
 import subprocess
@@ -39,7 +48,7 @@ class TestAPI(unittest.TestCase):
         n = 0
         for uuid, trail in db.trails():
             n += 1
-            self.assertEqual(self.uuid, uuid)
+            self.assertEqual(self.uuid.encode(), uuid)
             self.assertIsInstance(trail, TrailDBCursor)
             self.assertEqual(3, len(list(trail)))
 
@@ -62,7 +71,7 @@ class TestAPI(unittest.TestCase):
     def test_uuids(self):
         db = TrailDB('testtrail')
         self.assertEqual(0, db.get_trail_id(self.uuid))
-        self.assertEqual(self.uuid, db.get_uuid(0))
+        self.assertEqual(self.uuid.encode(), db.get_uuid(0))
         self.assertTrue(self.uuid in db)
 
 
@@ -177,15 +186,14 @@ class TestCons(unittest.TestCase):
         [cons.add(uuid, time, fields) for time, fields in events]
         tdb = cons.finalize()
 
-        timestamps = [e.time for e in tdb.trail(0, parsetime = True)]
+        timestamps = [e.time for e in tdb.trail(0, parsetime=True)]
 
         self.assertIsInstance(timestamps[0], datetime.datetime)
         self.assertEqual([time for time, _ in events], timestamps)
-        self.assertEquals(tdb.time_range(True),
-                          (events[0][0], events[-1][0]))
+        self.assertEqual(tdb.time_range(True), (events[0][0], events[-1][0]))
 
     def test_binarydata(self):
-        binary = '\x00\x01\x02\x00\xff\x00\xff'
+        binary = b'\x00\x01\x02\x00\xff\x00\xff'
         uuid = '12345678123456781234567812345678'
         cons = TrailDBConstructor('testtrail', ['field1'])
         cons.add(uuid, 123, [binary])
@@ -200,14 +208,14 @@ class TestCons(unittest.TestCase):
         tdb = cons.finalize()
 
         self.assertEqual(0, tdb.get_trail_id(uuid))
-        self.assertEqual(uuid, tdb.get_uuid(0))
+        self.assertEqual(uuid.encode(), tdb.get_uuid(0))
         self.assertEqual(1, tdb.num_trails)
         self.assertEqual(2, tdb.num_events)
         self.assertEqual(3, tdb.num_fields)
 
         crumbs = list(tdb.trails())
         self.assertEqual(1, len(crumbs))
-        self.assertEqual(uuid, crumbs[0][0])
+        self.assertEqual(uuid.encode(), crumbs[0][0])
         self.assertTrue(tdb[uuid])
         self.assertTrue(uuid in tdb)
         self.assertFalse('00000000000000000000000000000000' in tdb)
@@ -232,26 +240,26 @@ class TestCons(unittest.TestCase):
         tdb = cons.finalize()
 
         cursor = tdb.trail(0, rawitems=True)
-        event = cursor.next()
+        event = next(cursor)
         self.assertEqual(tdb.get_item_value(event.field1), 'a')
         self.assertEqual(tdb.get_item_value(event.field2), 'x' * 2048)
         self.assertEqual(tdb.get_item('field1', 'a'), event.field1)
         self.assertEqual(tdb.get_item('field2', 'x' * 2048), event.field2)
-        event = cursor.next()
+        event = next(cursor)
         self.assertEqual(tdb.get_item_value(event.field1), 'b')
         self.assertEqual(tdb.get_item_value(event.field2), 'y' * 2048)
         self.assertEqual(tdb.get_item('field1', 'b'), event.field1)
         self.assertEqual(tdb.get_item('field2', 'y' * 2048), event.field2)
 
         cursor = tdb.trail(0, rawitems=True)
-        event = cursor.next()
+        event = next(cursor)
         field = tdb_item_field(event.field1)
         val = tdb_item_val(event.field1)
         self.assertEqual(tdb.get_value(field, val), 'a')
         field = tdb_item_field(event.field2)
         val = tdb_item_val(event.field2)
         self.assertEqual(tdb.get_value(field, val), 'x' * 2048)
-        event = cursor.next()
+        event = next(cursor)
         field = tdb_item_field(event.field1)
         val = tdb_item_val(event.field1)
         self.assertEqual(tdb.get_value(field, val), 'b')
