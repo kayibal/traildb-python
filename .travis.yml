@@ -1,4 +1,6 @@
 sudo: required
+env:
+  - PATH=/usr/lib:/lib
 language: python
 python:
   - "2.7"
