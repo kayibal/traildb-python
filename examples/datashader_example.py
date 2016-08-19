@@ -1,3 +1,13 @@
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import open
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
+from past.utils import old_div
 from traildb import TrailDB
 
 import datashader as ds
@@ -21,7 +31,7 @@ def get_dataframe():
     #for y, (first_ts, events) in enumerate(sorted(get_events(tdb), reverse=True)):
     for y, (first_ts, events) in enumerate(get_events(tdb)):
         for event in events:
-            xs.append(int(event.time - base) / (24 * 3600))
+            xs.append(old_div(int(event.time - base), (24 * 3600)))
             ys.append(y)
             types.append('user' if event.user else 'anon')
     data = pd.DataFrame({'x': xs, 'y': ys})

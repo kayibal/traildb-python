@@ -1,3 +1,9 @@
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
 from traildb import TrailDB
 from collections import Counter
 import timeit
@@ -13,5 +19,5 @@ def item_top():
                                 for event in trail)
     return [(tdb.get_item_value(item), f) for item, f in stats.most_common(5)]
 
-print 'string_top', timeit.timeit(string_top, number=3)
-print 'item_top', timeit.timeit(item_top, number=3)
+print('string_top', timeit.timeit(string_top, number=3))
+print('item_top', timeit.timeit(item_top, number=3))
