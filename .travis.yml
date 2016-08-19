@@ -8,11 +8,11 @@ python:
   - "3.5"
 # command to install dependencies
 before_install:
-  - git clone https://github.com/traildb/traildb && cd traildb
+  - git clone https://github.com/traildb/traildb traildb-core && cd traildb-core
   - sudo apt-get install libjudy-dev libarchive-dev pkg-config build-essential
   - ./waf configure
   - ./waf build
-  - ./waf install
+  - ./waf install && cd ..
 install:
   - pip install -r requirements.txt
   - python setup.py install
