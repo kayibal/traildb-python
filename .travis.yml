@@ -10,10 +10,10 @@ python:
 before_install:
   - git clone https://github.com/traildb/traildb traildb-core && cd traildb-core
   - sudo apt-get install libjudy-dev libarchive-dev pkg-config build-essential
-  - ./waf configure
-  - ./waf build
-  - sudo ./waf install
-  - cd ..
+  - ./autogen.sh
+  - ./configure
+  - make
+  - make install && cd ..
 install:
   - pip install -r requirements.txt
   - python setup.py install
