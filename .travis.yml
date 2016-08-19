@@ -13,7 +13,7 @@ before_install:
   - sudo apt-get install libjudy-dev libarchive-dev pkg-config build-essential
   - ./waf configure
   - ./waf build
-  - cd /home/travis/build/traildb/traildb-python/traildb-core/build
+  - cd /home/travis/build/traildb/traildb-python/traildb-core
   - sudo ./waf install
   - cd ..
 install:
