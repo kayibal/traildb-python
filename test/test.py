@@ -48,7 +48,7 @@ class TestAPI(unittest.TestCase):
         n = 0
         for uuid, trail in db.trails():
             n += 1
-            self.assertEqual(self.uuid.encode(), uuid)
+            self.assertEqual(self.uuid.encode('utf8'), uuid)
             self.assertIsInstance(trail, TrailDBCursor)
             self.assertEqual(3, len(list(trail)))
 
@@ -71,7 +71,7 @@ class TestAPI(unittest.TestCase):
     def test_uuids(self):
         db = TrailDB('testtrail')
         self.assertEqual(0, db.get_trail_id(self.uuid))
-        self.assertEqual(self.uuid.encode(), db.get_uuid(0))
+        self.assertEqual(self.uuid.encode('utf8'), db.get_uuid(0))
         self.assertTrue(self.uuid in db)
 
 
@@ -208,14 +208,14 @@ class TestCons(unittest.TestCase):
         tdb = cons.finalize()
 
         self.assertEqual(0, tdb.get_trail_id(uuid))
-        self.assertEqual(uuid.encode(), tdb.get_uuid(0))
+        self.assertEqual(uuid.encode('utf8'), tdb.get_uuid(0))
         self.assertEqual(1, tdb.num_trails)
         self.assertEqual(2, tdb.num_events)
         self.assertEqual(3, tdb.num_fields)
 
         crumbs = list(tdb.trails())
         self.assertEqual(1, len(crumbs))
-        self.assertEqual(uuid.encode(), crumbs[0][0])
+        self.assertEqual(uuid.encode('utf8'), crumbs[0][0])
         self.assertTrue(tdb[uuid])
         self.assertTrue(uuid in tdb)
         self.assertFalse('00000000000000000000000000000000' in tdb)

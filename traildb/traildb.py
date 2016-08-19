@@ -22,6 +22,8 @@ from datetime import datetime
 import time
 import codecs
 
+CODEC = 'utf8'
+
 if os.name == "posix" and sys.platform == "darwin":
     try:
         lib = CDLL('libtraildb.dylib')
@@ -151,9 +153,9 @@ class TrailDBConstructor(object):
         n = len(ofields)
 
         if isinstance(path, str):
-            path = path.encode()
+            path = path.encode(CODEC)
 
-        ofield_names = (c_char_p * n)(*[name.encode() for name in ofields])
+        ofield_names = (c_char_p * n)(*[name.encode(CODEC) for name in ofields])
 
         self._cons = lib.tdb_cons_init()
         if lib.tdb_cons_open(self._cons, path, ofield_names, n) != 0:
@@ -176,7 +178,7 @@ class TrailDBConstructor(object):
         if isinstance(tstamp, datetime):
             tstamp = int(time.mktime(tstamp.timetuple()))
         n = len(self.ofields)
-        values = [v.encode() if not isinstance(v, bytes) else v for v in values]
+        values = [v.encode(CODEC) if not isinstance(v, bytes) else v for v in values]
         value_array = (c_char_p * n)(*values)
         value_lengths = (c_uint64 * n)(*[len(v) for v in values])
         f = lib.tdb_cons_add(self._cons, uuid_raw(uuid), tstamp, value_array,
@@ -271,7 +273,7 @@ class TrailDB(object):
     def __init__(self, path):
         """Open a TrailDB at path."""
         if isinstance(path, str):
-            path = path.encode()
+            path = path.encode(CODEC)
 
         self._db = db = lib.tdb_init()
         res = lib.tdb_open(self._db, path)
@@ -281,7 +283,7 @@ class TrailDB(object):
         self.num_trails = lib.tdb_num_trails(db)
         self.num_events = lib.tdb_num_events(db)
         self.num_fields = lib.tdb_num_fields(db)
-        self.fields = [lib.tdb_get_field_name(db, i).decode() for i in range(self.num_fields)]
+        self.fields = [lib.tdb_get_field_name(db, i).decode(CODEC) for i in range(self.num_fields)]
         self._event_cls = namedtuple('event', self.fields, rename=True)
         self._uint64_ptr = pointer(c_uint64())
 
@@ -371,7 +373,7 @@ class TrailDB(object):
         """Return the item corresponding to a field ID or
         a field name and a string value."""
         field = self.field(fieldish)
-        item = lib.tdb_get_item(self._db, field, value.encode(), len(value))
+        item = lib.tdb_get_item(self._db, field, value.encode(CODEC), len(value))
         if not item:
             raise TrailDBError("No such value: '%s'" % value)
         return item
@@ -386,7 +388,7 @@ class TrailDB(object):
         # if value can not be converted to unicode we handle it as binary
         # TODO: find a better way to handle binary data.
         try:
-            return value[0:self._uint64_ptr.contents.value].decode()
+            return value[0:self._uint64_ptr.contents.value].decode(CODEC)
         except UnicodeDecodeError:
             return value[0:self._uint64_ptr.contents.value]
 
@@ -397,7 +399,7 @@ class TrailDB(object):
         value = lib.tdb_get_value(self._db, field, val, self._uint64_ptr)
         if value is None:
             raise TrailDBError("Error reading value, error: %s" % lib.tdb_error(self._db))
-        return value[0:self._uint64_ptr.contents.value].decode()
+        return value[0:self._uint64_ptr.contents.value].decode(CODEC)
 
     def get_uuid(self, trail_id, raw=False):
         """Return UUID given a Trail ID."""
