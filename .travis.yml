@@ -12,7 +12,8 @@ before_install:
   - sudo apt-get install libjudy-dev libarchive-dev pkg-config build-essential
   - ./waf configure
   - ./waf build
-  - ./waf install && cd ..
+  - sudo ./waf install
+  - cd ..
 install:
   - pip install -r requirements.txt
   - python setup.py install
