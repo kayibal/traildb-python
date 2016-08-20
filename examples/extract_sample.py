@@ -3,11 +3,14 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 from future import standard_library
-standard_library.install_aliases()
 from past.utils import old_div
-import sys
 from random import random
+import sys
+
 from traildb import TrailDB, TrailDBConstructor
+
+standard_library.install_aliases()
+
 
 def extract(tdb, cons, sample_size):
     for uuid, trail in tdb.trails():

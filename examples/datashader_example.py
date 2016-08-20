@@ -5,14 +5,17 @@ from __future__ import absolute_import
 from builtins import open
 from builtins import int
 from future import standard_library
-standard_library.install_aliases()
 from builtins import range
 from past.utils import old_div
-from traildb import TrailDB
 
 import datashader as ds
 import datashader.transfer_functions as tf
 import pandas as pd
+
+from traildb import TrailDB
+
+standard_library.install_aliases()
+
 
 def get_events(tdb):
     query = [('title', 'Prince (musician)')]
@@ -21,14 +24,15 @@ def get_events(tdb):
         if events:
             yield events[0].time, events
 
+
 def get_dataframe():
     tdb = TrailDB('pydata-tutorial.tdb')
     base = tdb.min_timestamp()
     types = []
     xs = []
     ys = []
-    #try this:
-    #for y, (first_ts, events) in enumerate(sorted(get_events(tdb), reverse=True)):
+    # try this:
+    # for y, (first_ts, events) in enumerate(sorted(get_events(tdb), reverse=True)):
     for y, (first_ts, events) in enumerate(get_events(tdb)):
         for event in events:
             xs.append(old_div(int(event.time - base), (24 * 3600)))
@@ -41,6 +45,6 @@ def get_dataframe():
 cnv = ds.Canvas(400, 300)
 agg = cnv.points(get_dataframe(), 'x', 'y', ds.count_cat('type'))
 colors = {'anon': 'red', 'user': 'blue'}
-img=tf.set_background(tf.colorize(agg, colors, how='eq_hist'), 'white')
+img = tf.set_background(tf.colorize(agg, colors, how='eq_hist'), 'white')
 with open('prince.png', 'w') as f:
     f.write(img.to_bytesio().getvalue())

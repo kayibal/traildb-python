@@ -5,16 +5,15 @@ from __future__ import absolute_import
 from builtins import next
 from builtins import int
 from future import standard_library
-standard_library.install_aliases()
-
 import os
-import shutil
-import subprocess
 import unittest
 import datetime
 
 from traildb import TrailDB, TrailDBConstructor, tdb_item_field, tdb_item_val
-from traildb import TrailDBError, TrailDBCursor, TrailDBEventFilter
+from traildb import TrailDBError, TrailDBCursor
+
+standard_library.install_aliases()
+
 
 class TestAPI(unittest.TestCase):
     def setUp(self):
@@ -35,7 +34,7 @@ class TestAPI(unittest.TestCase):
         trail = db.trail(0)
         self.assertIsInstance(trail, TrailDBCursor)
 
-        events = list(trail) # Force evaluation of generator
+        events = list(trail)  # Force evaluation of generator
         self.assertEqual(3, len(events))
         for event in events:
             self.assertTrue(hasattr(event, 'time'))
@@ -62,7 +61,7 @@ class TestAPI(unittest.TestCase):
         db2 = TrailDB('testtrail')
 
         with self.assertRaises(TrailDBError):
-           TrailDB('foo.tdb')
+            TrailDB('foo.tdb')
 
     def test_fields(self):
         db = TrailDB('testtrail')
@@ -73,7 +72,6 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(0, db.get_trail_id(self.uuid))
         self.assertEqual(self.uuid.encode('utf8'), db.get_uuid(0))
         self.assertTrue(self.uuid in db)
-
 
     def test_lexicons(self):
         db = TrailDB('testtrail')
@@ -86,8 +84,7 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(['1', '2', '3'], list(db.lexicon(2)))
 
         with self.assertRaises(TrailDBError):
-            db.lexicon(3) # Out of bounds
-
+            db.lexicon(3)  # Out of bounds
 
     def test_metadata(self):
         db = TrailDB('testtrail.tdb')
@@ -95,7 +92,8 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(3, db.max_timestamp())
         self.assertEqual((1, 3), db.time_range())
 
-        self.assertEqual((1, 3), db.time_range(parsetime = False))
+        self.assertEqual((1, 3), db.time_range(parsetime=False))
+
 
 class TestFilter(unittest.TestCase):
 
@@ -115,7 +113,8 @@ class TestFilter(unittest.TestCase):
     def test_simple_disjunction(self):
         tdb = TrailDB('testtrail')
         # test shorthand notation (not a list of lists)
-        events = list(tdb.trail(0, event_filter=[('field1', 'a'), ('field2', '4')]))
+        events = list(
+            tdb.trail(0, event_filter=[('field1', 'a'), ('field2', '4')]))
         self.assertEqual(len(events), 2)
         self.assertEqual((events[0].field1, events[0].field2), ('a', '1'))
         self.assertEqual((events[1].field1, events[1].field2), ('d', '4'))
@@ -124,12 +123,14 @@ class TestFilter(unittest.TestCase):
         tdb = TrailDB('testtrail')
         events = list(tdb.trail(0, event_filter=[('field3', 'x', True)]))
         self.assertEqual(len(events), 1)
-        self.assertEqual((events[0].field1, events[0].field2, events[0].field3), ('c', '3', 'y'))
+        self.assertEqual((events[0].field1, events[0].field2,
+                          events[0].field3), ('c', '3', 'y'))
 
     def test_conjunction(self):
         tdb = TrailDB('testtrail')
-        events = list(tdb.trail(0, event_filter=[[('field1', 'e'), ('field1', 'c')],
-                                                 [('field3', 'y', True)]]))
+        events = list(
+            tdb.trail(0, event_filter=[[('field1', 'e'), ('field1', 'c')],
+                                       [('field3', 'y', True)]]))
         self.assertEqual(len(events), 1)
         self.assertEqual((events[0].field1, events[0].field2), ('e', '5'))
 
@@ -226,7 +227,7 @@ class TestCons(unittest.TestCase):
 
         self.assertEqual(123, trail[0].time)
         self.assertEqual('a', trail[0].field1)
-        self.assertEqual('', trail[0].field2) # TODO: Should this be None?
+        self.assertEqual('', trail[0].field2)  # TODO: Should this be None?
 
         self.assertEqual(124, trail[1].time)
         self.assertEqual('b', trail[1].field1)
@@ -282,7 +283,8 @@ class TestCons(unittest.TestCase):
         uuid, trail = list(tdb.trails())[0]
         trail = list(trail)
         self.assertEqual([123, 124], [e.time for e in trail])
-        self.assertEqual(['foobarbaz', 'barquuxmoo'], [e.field1 for e in trail])
+        self.assertEqual(['foobarbaz', 'barquuxmoo'],
+                         [e.field1 for e in trail])
 
     def tearDown(self):
         try:

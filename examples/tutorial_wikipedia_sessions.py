@@ -4,11 +4,13 @@ from __future__ import division
 from __future__ import absolute_import
 from builtins import next
 from future import standard_library
-standard_library.install_aliases()
 import sys
+
 from traildb import TrailDB
 
+standard_library.install_aliases()
 SESSION_LIMIT = 30 * 60
+
 
 def sessions(tdb):
     for i, (uuid, trail) in enumerate(tdb.trails(only_timestamp=True)):
@@ -20,7 +22,7 @@ def sessions(tdb):
                 num_sessions += 1
             prev_time = timestamp
             num_events += 1
-        print('Trail[%d] Number of Sessions: %d Number of Events: %d' %\
+        print('Trail[%d] Number of Sessions: %d Number of Events: %d' %
               (i, num_sessions, num_events))
 
 if __name__ == '__main__':

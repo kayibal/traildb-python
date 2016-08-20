@@ -3,14 +3,14 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 from future import standard_library
-standard_library.install_aliases()
+from datetime import datetime
 import sys
 import gzip
 import hashlib
-from datetime import datetime
 
 import traildb
 
+standard_library.install_aliases()
 num_events = 0
 
 # This script parses Wikipedia revision metadata that you can find here
@@ -18,12 +18,14 @@ num_events = 0
 # You want a file like
 # https://dumps.wikimedia.org/enwiki/20160501/enwiki-20160501-stub-meta-history.xml.gz
 
+
 def add_event(cons, uuid, tstamp, user, ip, title):
     global num_events
     cons.add(uuid, tstamp, (user, ip, title))
     num_events += 1
     if not num_events & 1023:
         print('%d events added' % num_events)
+
 
 def parse(cons, fileobj):
     for line in fileobj:
