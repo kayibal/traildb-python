@@ -2,14 +2,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
-from future import standard_library
 from builtins import range
 from uuid import uuid4
 from datetime import datetime
 
 from traildb import TrailDBConstructor, TrailDB
 
-standard_library.install_aliases()
 cons = TrailDBConstructor('tiny', ['username', 'action'])
 
 for i in range(3):

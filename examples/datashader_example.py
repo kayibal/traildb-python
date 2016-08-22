@@ -4,7 +4,6 @@ from __future__ import print_function
 from __future__ import absolute_import
 from builtins import open
 from builtins import int
-from future import standard_library
 from builtins import range
 from past.utils import old_div
 
@@ -13,8 +12,6 @@ import datashader.transfer_functions as tf
 import pandas as pd
 
 from traildb import TrailDB
-
-standard_library.install_aliases()
 
 
 def get_events(tdb):

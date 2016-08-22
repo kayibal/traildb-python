@@ -4,15 +4,12 @@ from __future__ import division
 from __future__ import absolute_import
 from builtins import next
 from builtins import int
-from future import standard_library
 import os
 import unittest
 import datetime
 
 from traildb import TrailDB, TrailDBConstructor, tdb_item_field, tdb_item_val
 from traildb import TrailDBError, TrailDBCursor
-
-standard_library.install_aliases()
 
 
 class TestAPI(unittest.TestCase):
@@ -198,7 +195,7 @@ class TestCons(unittest.TestCase):
         uuid = '12345678123456781234567812345678'
         cons = TrailDBConstructor('testtrail', ['field1'])
         cons.add(uuid, 123, [binary])
-        tdb = cons.finalize()
+        tdb = cons.finalize(unicode=False)
         self.assertEqual(list(tdb[0])[0].field1, binary)
 
     def test_cons(self):

@@ -2,7 +2,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
-from future import standard_library
 from datetime import datetime
 import sys
 import gzip
@@ -10,7 +9,6 @@ import hashlib
 
 import traildb
 
-standard_library.install_aliases()
 num_events = 0
 
 # This script parses Wikipedia revision metadata that you can find here

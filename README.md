@@ -4,7 +4,6 @@
 
 First install the [TrailDB library](https://github.com/traildb/traildb). Then
 
-    $ pip install -r requirements.txt
     $ python setup.py install
 
 For detailed instructions, see [Getting Started guide](http://traildb.io/docs/getting_started/).

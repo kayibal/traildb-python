@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
-from future import standard_library
 from builtins import int
 from builtins import range
 from past.builtins import basestring
@@ -21,8 +20,6 @@ import sys
 import time
 import codecs
 
-
-standard_library.install_aliases()
 CODEC = 'utf8'
 
 if os.name == "posix" and sys.platform == "darwin":
@@ -221,7 +218,7 @@ class TrailDBConstructor(object):
         if f > 0:
             raise TrailDBError("Too many values: %s" % db.num_fields)
 
-    def finalize(self):
+    def finalize(self, unicode=True):
         """Finalize this TrailDB. You cannot add new events in this TrailDB
         after calling this function.
 
@@ -230,7 +227,7 @@ class TrailDBConstructor(object):
         r = lib.tdb_cons_finalize(self._cons)
         if r:
             raise TrailDBError("Could not finalize (%d)" % r)
-        return TrailDB(self.path)
+        return TrailDB(self.path, unicode)
 
 
 class TrailDBCursor(object):
@@ -296,7 +293,7 @@ class TrailDB(object):
     TrailDB.num_fields -- number of fields
     """
 
-    def __init__(self, path):
+    def __init__(self, path, unicode=True):
         """Open a TrailDB at path."""
         if isinstance(path, str):
             path = path.encode(CODEC)
@@ -314,6 +311,7 @@ class TrailDB(object):
                        for i in range(self.num_fields)]
         self._event_cls = namedtuple('event', self.fields, rename=True)
         self._uint64_ptr = pointer(c_uint64())
+        self.unicode = unicode
 
     def __del__(self):
         if hasattr(self, '_db'):
@@ -417,13 +415,10 @@ class TrailDB(object):
             raise TrailDBError("Error reading value, error: %s" %
                                lib.tdb_error(self._db))
 
-        # this is for handle bynary data i.e. test/test.py TEST=test_binarydata
-        # if value can not be converted to unicode we handle it as binary
-        # TODO: find a better way to handle binary data.
-        try:
+        if self.unicode:
             return value[0:self._uint64_ptr.contents.value].decode(CODEC)
-        except UnicodeDecodeError:
-            return value[0:self._uint64_ptr.contents.value]
+
+        return value[0:self._uint64_ptr.contents.value]
 
     def get_value(self, fieldish, val):
         """Return the string value corresponding to a field ID or
@@ -433,7 +428,11 @@ class TrailDB(object):
         if value is None:
             raise TrailDBError("Error reading value, error: %s" %
                                lib.tdb_error(self._db))
-        return value[0:self._uint64_ptr.contents.value].decode(CODEC)
+
+        if self.unicode:
+            return value[0:self._uint64_ptr.contents.value].decode(CODEC)
+
+        return value[0:self._uint64_ptr.contents.value]
 
     def get_uuid(self, trail_id, raw=False):
         """Return UUID given a Trail ID."""
@@ -493,7 +492,7 @@ class TrailDBEventFilter(object):
                     field, value = term
                 try:
                     item = db.get_item(field, value)
-                except TrailDBError:
+                except TrailDBError as ValueError:
                     item = 0
                 err = lib.tdb_event_filter_add_term(self.flt,
                                                     item,

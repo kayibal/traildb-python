@@ -3,12 +3,10 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 from builtins import next
-from future import standard_library
 import sys
 
 from traildb import TrailDB
 
-standard_library.install_aliases()
 SESSION_LIMIT = 30 * 60
 
 
