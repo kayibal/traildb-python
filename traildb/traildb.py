@@ -236,12 +236,39 @@ class TrailDBCursor(object):
         timestamp = event.contents.timestamp
         if self.parsetime:
             timestamp = datetime.fromtimestamp(event.contents.timestamp)
+
         if self.only_timestamp:
             return timestamp
         elif self.valuefun:
-            return self.cls(timestamp, *(self.valuefun(item) for item in items))
+            #return self.cls(timestamp, *(self.valuefun(item) for item in items))
+            return self.cls(False, timestamp, *items)
         else:
-            return self.cls(timestamp, *items)
+            return self.cls(True, timestamp, *items)
+
+
+def mk_event_class(fields, valuefun):
+    field_to_index = {f: i for i, f in enumerate(fields)}
+
+    class TrailDBEvent(object):
+        __slots__ = ('items', 'rawitems')
+
+        def __init__(self, rawitems, *items):
+            self.items = items
+            self.rawitems = rawitems
+
+        def __getattr__(self, name):
+            item = self.items[field_to_index[name]]
+            if self.rawitems:
+                return item
+            else:
+                if name == 'time':
+                    return item
+                else:
+                    return valuefun(item)
+
+
+    return TrailDBEvent
+
 
 class TrailDB(object):
     """Query a TrailDB.
@@ -264,7 +291,8 @@ class TrailDB(object):
         self.num_events = lib.tdb_num_events(db)
         self.num_fields = lib.tdb_num_fields(db)
         self.fields = [lib.tdb_get_field_name(db, i) for i in xrange(self.num_fields)]
-        self._event_cls = namedtuple('event', self.fields, rename=True)
+        #self._event_cls = namedtuple('event', self.fields, rename=True)
+        self._event_cls = mk_event_class(self.fields, self.get_item_value)
         self._uint64_ptr = pointer(c_uint64())
 
     def __del__(self):

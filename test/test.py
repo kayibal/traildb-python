@@ -26,12 +26,14 @@ class TestAPI(unittest.TestCase):
         trail = db.trail(0)
         self.assertIsInstance(trail, TrailDBCursor)
 
-        events = list(trail) # Force evaluation of generator
-        self.assertEqual(3, len(events))
-        for event in events:
+        n = 0
+        for event in trail:
             self.assertTrue(hasattr(event, 'time'))
             self.assertTrue(hasattr(event, 'field1'))
             self.assertTrue(hasattr(event, 'field2'))
+            n += 1
+
+        self.assertEqual(3, n)
 
     def test_crumbs(self):
         db = TrailDB('testtrail.tdb')
