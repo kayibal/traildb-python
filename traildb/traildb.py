@@ -250,13 +250,17 @@ def mk_event_class(fields, valuefun):
     field_to_index = {f: i for i, f in enumerate(fields)}
 
     class TrailDBEvent(object):
-        __slots__ = ('items', 'rawitems')
+        __slots__ = ('items', 'rawitems', 'memoized')
 
         def __init__(self, rawitems, *items):
-            self.items = items
+            self.items = tuple(items)
             self.rawitems = rawitems
+            self.memoized = {}
 
         def __getattr__(self, name):
+            if name in self.memoized:
+                return self.memoized[name]
+
             item = self.items[field_to_index[name]]
             if self.rawitems:
                 return item
@@ -264,8 +268,8 @@ def mk_event_class(fields, valuefun):
                 if name == 'time':
                     return item
                 else:
-                    return valuefun(item)
-
+                    self.memoized[name] = valuefun(item)
+                    return self.memoized[name]
 
     return TrailDBEvent
 
