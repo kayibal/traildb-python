@@ -31,6 +31,11 @@ class TestAPI(unittest.TestCase):
             self.assertTrue(hasattr(event, 'time'))
             self.assertTrue(hasattr(event, 'field1'))
             self.assertTrue(hasattr(event, 'field2'))
+            self.assertEqual(str(n+1), event.field2)
+
+            with self.assertRaises(AttributeError):
+                event.missing_field
+
             n += 1
 
         self.assertEqual(3, n)

@@ -261,6 +261,9 @@ def mk_event_class(fields, valuefun):
             if name in self.memoized:
                 return self.memoized[name]
 
+            if name not in field_to_index:
+                raise AttributeError
+
             item = self.items[field_to_index[name]]
             if self.rawitems:
                 return item
