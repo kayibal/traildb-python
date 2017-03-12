@@ -1,3 +1,4 @@
+dist: trusty
 sudo: required
 env:
   - LD_LIBRARY_PATH='/usr/local/lib'
@@ -10,11 +11,12 @@ python:
   - "3.5"
 # command to install dependencies
 before_install:
-  - git clone https://github.com/traildb/traildb traildb-core && cd traildb-core
-  - sudo apt-get install libjudy-dev libarchive-dev pkg-config build-essential
-  - ./waf configure
-  - ./waf build
-  - sudo ./waf install
+  - git clone https://github.com/traildb/traildb traildb-core && pushd traildb-core
+  - sudo apt-get install -y libjudy-dev libarchive-dev pkg-config build-essential
+  - python2 ./waf configure
+  - python2 ./waf build
+  - sudo python2 ./waf install
+  - popd
 
 install:
   - ls
