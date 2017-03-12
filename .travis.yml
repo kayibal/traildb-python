@@ -15,8 +15,9 @@ before_install:
   - ./waf configure
   - ./waf build
   - sudo ./waf install
-  - cd ..
+
 install:
+  - ls
   - pip install -r requirements.txt
   - python setup.py install
 # command to run tests
