@@ -18,7 +18,7 @@ before_install:
   - popd
 
 install:
-  - ls
+  - cd
   - pip install -r requirements.txt
   - python setup.py install
 # command to run tests
