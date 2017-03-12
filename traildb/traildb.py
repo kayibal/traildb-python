@@ -22,6 +22,13 @@ import codecs
 
 CODEC = 'utf8'
 
+HEX = 'hex'
+
+try:
+    codecs.decode('A0', 'hex')
+except LookupError:
+    HEX = 'hex_codec'
+
 if os.name == "posix" and sys.platform == "darwin":
     try:
         lib = CDLL('libtraildb.dylib')
@@ -109,12 +116,12 @@ api(lib.tdb_event_filter_free, [tdb_event_filter])
 def uuid_hex(uuid):
     if isinstance(uuid, basestring):
         return uuid
-    return codecs.encode(string_at(uuid, 16), "hex")
+    return codecs.encode(string_at(uuid, 16), HEX)
 
 
 def uuid_raw(uuid):
     if isinstance(uuid, basestring):
-        return (c_ubyte * 16).from_buffer_copy(codecs.decode(uuid, "hex"))
+        return (c_ubyte * 16).from_buffer_copy(codecs.decode(uuid, HEX))
     return uuid
 
 
