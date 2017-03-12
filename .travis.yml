@@ -12,8 +12,8 @@ python:
 before_install:
   - git clone https://github.com/traildb/traildb traildb-core && pushd traildb-core
   - sudo apt-get install -y libjudy-dev libarchive-dev pkg-config build-essential
-  - python2 ./waf configure
-  - python2 ./waf build
+  - sudo python2 ./waf configure
+  - sudo python2 ./waf build
   - sudo python2 ./waf install
   - popd
 
